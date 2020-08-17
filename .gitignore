@@ -1,0 +1,10 @@
+#/src/main/resources/config.properties
+target
+*.class
+*.jar
+*.war
+*.ear
+*.logs
+*.iml
+#*.properties
+.idea/
