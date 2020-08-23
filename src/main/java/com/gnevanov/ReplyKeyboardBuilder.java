@@ -12,7 +12,7 @@ public class ReplyKeyboardBuilder {
     private Long chatId;
     private String text;
 
-    private List<KeyboardRow> keyboard = new ArrayList<>();
+    private List<KeyboardRow> keyboardRows = new ArrayList<>();
     private KeyboardRow row = null;
 
     private ReplyKeyboardBuilder() {
@@ -42,13 +42,13 @@ public class ReplyKeyboardBuilder {
         return this;
     }
 
-    public ReplyKeyboardBuilder button(String text, String callbackData) {
+    public ReplyKeyboardBuilder button(String text) {
         row.add(text);
         return this;
     }
 
     public ReplyKeyboardBuilder endRow() {
-        this.keyboard.add(this.row);
+        this.keyboardRows.add(this.row);
         this.row = null;
         return this;
     }
@@ -61,7 +61,7 @@ public class ReplyKeyboardBuilder {
 
         ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
 
-        keyboardMarkup.setKeyboard(keyboard);
+        keyboardMarkup.setKeyboard(keyboardRows);
         message.setReplyMarkup(keyboardMarkup);
 
         return message;

@@ -6,12 +6,8 @@ import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
-
-import java.util.ArrayList;
 
 public class TelegramBot extends TelegramLongPollingBot {
     private static final TelegramBotProperties properties = new TelegramBotProperties();
@@ -20,6 +16,7 @@ public class TelegramBot extends TelegramLongPollingBot {
         ApiContextInitializer.init();
         TelegramBotsApi botsApi = new TelegramBotsApi();
         botsApi.registerBot(new TelegramBot());
+        //TextParser.getInfoAboutAuthor("https://spb.hh.ru/resume/683183d2ff0777f2fd0039ed1f78766c747a51");
     }
 
     /**
@@ -35,7 +32,8 @@ public class TelegramBot extends TelegramLongPollingBot {
                 if (textMessage.startsWith("/start")) {
                     execute(sendReplyKeyBoardMessage(update.getMessage().getChatId(),"RU"));
                 } else if (textMessage.startsWith("\uD83D\uDC64")) { //About author
-                    execute(new SendMessage().setChatId(update.getMessage().getChatId()).setText("Информация об авторе:\n Гневанов Егор, Java программист"));
+                    execute(new SendMessage().setChatId(update.getMessage().getChatId()).setText("Информация об авторе:\n Гневанов Егор \n" + TextParser.getInfoAboutAuthor(properties.getProperty("cvURL"))));
+                    //System.out.println(TextParser.getInfoAboutAuthor(properties.getProperty("cvURL")));
                 } else if (textMessage.startsWith("\uD83D\uDCBC")) { //Work experience
                     execute(new SendMessage().setChatId(update.getMessage().getChatId()).setText("Стаж работы:\n 7 лет 10 месяцев"));
                 } else if (textMessage.startsWith("\uD83D\uDCF1")) { //Contact
@@ -91,36 +89,25 @@ public class TelegramBot extends TelegramLongPollingBot {
     }
 
     public static SendMessage sendReplyKeyBoardMessage(long chatId, String language) {
-        ArrayList<KeyboardRow> keyboardRows = new ArrayList<>();
-        ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup();
-        replyKeyboardMarkup.setSelective(true);
-        replyKeyboardMarkup.setResizeKeyboard(true);
-        replyKeyboardMarkup.setOneTimeKeyboard(false);
 
-        KeyboardRow keyboardRow1 = new KeyboardRow();
-        KeyboardRow keyboardRow2 = new KeyboardRow();
-        KeyboardRow keyboardRow3 = new KeyboardRow();
-        KeyboardRow keyboardRow4 = new KeyboardRow();
+        ReplyKeyboardBuilder replyKeyboardBuilder = ReplyKeyboardBuilder.create();
+        replyKeyboardBuilder.setChatId(chatId);
 
         if (language.equals("EN")) {
-            keyboardRow1.add("\uD83D\uDC64 About author");
-            keyboardRow2.add("\uD83D\uDCBC Work experience");
-            keyboardRow3.add("\uD83D\uDCF1 Contact");
-            keyboardRow4.add("\uD83C\uDDF7\uD83C\uDDFA");
+            replyKeyboardBuilder.setText("\uD83D\uDC68\u200D\uD83D\uDCBB");
+            replyKeyboardBuilder.row().button("\uD83D\uDC64 About author").endRow()
+                    .row().button("\uD83D\uDCBC Work experience").endRow()
+                    .row().button("\uD83D\uDCF1 Contact").endRow()
+                    .row().button("\uD83C\uDDF7\uD83C\uDDFA").endRow();
         } else {
-            keyboardRow1.add("\uD83D\uDC64 Об авторе");
-            keyboardRow2.add("\uD83D\uDCBC Опыт работы");
-            keyboardRow3.add("\uD83D\uDCF1 Контакты");
-            keyboardRow4.add("\uD83C\uDDFA\uD83C\uDDF8");
+            replyKeyboardBuilder.setText("\uD83D\uDC68\u200D\uD83D\uDCBB");
+            replyKeyboardBuilder.row().button("\uD83D\uDC64 Об авторе").endRow()
+                    .row().button("\uD83D\uDCBC Опыт работы").endRow()
+                    .row().button("\uD83D\uDCF1 Контакты").endRow()
+                    .row().button("\uD83C\uDDFA\uD83C\uDDF8").endRow();
         }
 
-        keyboardRows.add(keyboardRow1);
-        keyboardRows.add(keyboardRow2);
-        keyboardRows.add(keyboardRow3);
-        keyboardRows.add(keyboardRow4);
-
-        replyKeyboardMarkup.setKeyboard(keyboardRows);
-        return new SendMessage().setChatId(chatId).setText("..").setReplyMarkup(replyKeyboardMarkup);
+        return replyKeyboardBuilder.build();
 
     }
 }
