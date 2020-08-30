@@ -11,12 +11,13 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
 
 public class TelegramBot extends TelegramLongPollingBot {
     private static final TelegramBotProperties properties = new TelegramBotProperties();
+    private static String currentLanguage = "RU";
 
     public static void main(String[] args) throws TelegramApiRequestException {
         ApiContextInitializer.init();
         TelegramBotsApi botsApi = new TelegramBotsApi();
         botsApi.registerBot(new TelegramBot());
-        //TextParser.getInfoAboutAuthor("https://spb.hh.ru/resume/683183d2ff0777f2fd0039ed1f78766c747a51");
+        //System.out.println(TextParser.getWorkExperience(properties, currentLanguage));
     }
 
     /**
@@ -32,12 +33,11 @@ public class TelegramBot extends TelegramLongPollingBot {
                 if (textMessage.startsWith("/start")) {
                     execute(sendReplyKeyBoardMessage(update.getMessage().getChatId(),"RU"));
                 } else if (textMessage.startsWith("\uD83D\uDC64")) { //About author
-                    execute(new SendMessage().setChatId(update.getMessage().getChatId()).setText("Информация об авторе:\n Гневанов Егор \n" + TextParser.getInfoAboutAuthor(properties.getProperty("cvURL"))));
-                    //System.out.println(TextParser.getInfoAboutAuthor(properties.getProperty("cvURL")));
+                    execute(new SendMessage().setChatId(update.getMessage().getChatId()).setText(TextParser.getInfoAboutAuthor(properties,currentLanguage)));
                 } else if (textMessage.startsWith("\uD83D\uDCBC")) { //Work experience
-                    execute(new SendMessage().setChatId(update.getMessage().getChatId()).setText("Стаж работы:\n 7 лет 10 месяцев"));
+                    execute(new SendMessage().setChatId(update.getMessage().getChatId()).setText(TextParser.getWorkExperience(properties,currentLanguage)));
                 } else if (textMessage.startsWith("\uD83D\uDCF1")) { //Contact
-                    execute(new SendMessage().setChatId(update.getMessage().getChatId()).setText("Контактная информация: \n тел.: +79650313367"));
+                    execute(new SendMessage().setChatId(update.getMessage().getChatId()).setText(TextParser.getContactInformation(properties,currentLanguage)));
                 } else if (textMessage.startsWith("\uD83C\uDDF7")) { //Русский
                     execute(sendReplyKeyBoardMessage(update.getMessage().getChatId(),"RU"));
                 } else if (textMessage.startsWith("\uD83C\uDDFA")) { //English
@@ -51,7 +51,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                     //(в тот же чат, откуда пришло входящее сообщение)
                     outMessage.setChatId(inMessage.getChatId());
                     //Указываем текст сообщения
-                    outMessage.setText(inMessage.getText());
+                    outMessage.setText("Command doesn't support");//inMessage.getText());
                     //Отправляем сообщение
                     execute(outMessage);
                 }
@@ -106,6 +106,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                     .row().button("\uD83D\uDCF1 Контакты").endRow()
                     .row().button("\uD83C\uDDFA\uD83C\uDDF8").endRow();
         }
+        currentLanguage = language;
 
         return replyKeyboardBuilder.build();
 
