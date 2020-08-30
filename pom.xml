@@ -33,11 +33,6 @@
             <artifactId>jsoup</artifactId>
             <version>1.11.2</version>
         </dependency>
-        <dependency>
-            <groupId>com.github.scribejava</groupId>
-            <artifactId>scribejava-apis</artifactId>
-            <version>7.0.0</version>
-        </dependency>
     </dependencies>
 
     <build>
