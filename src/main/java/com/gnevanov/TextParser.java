@@ -8,16 +8,24 @@ import org.jsoup.select.Elements;
 import java.io.IOException;
 
 public class TextParser {
-    private static String cvURL;
+    private String cvURL;
+    private int workNumber = 0;
 
-    public static String getInfoAboutAuthor(TelegramBotProperties properties, String currentLanguage) {
+    public int getWorkNumber() {
+        return workNumber;
+    }
 
+    public void setWorkNumber(int workNumber) {
+        this.workNumber = workNumber;
+    }
+
+    public String getInfoAboutAuthor(TelegramBotProperties properties, String currentLanguage) {
+        workNumber = 0;
         StringBuilder authorInfo = new StringBuilder();
+        setCvURL(properties, currentLanguage);
         if (currentLanguage.equals("RU")) {
-            cvURL = properties.getProperty("cvUrlRus");
             authorInfo.append("Информация об авторе:\n");
         } else {
-            cvURL = properties.getProperty("cvUrlEng");
             authorInfo.append("Information about author:\n");
         }
         try {
@@ -28,42 +36,56 @@ public class TextParser {
             authorInfo.append(authorPosition.get(0).text());
             return authorInfo.toString();
         } catch (IOException e) {
-            return currentLanguage.equals("RU") ? "Информация временно недоступна" : "Information is temporarily unavailable";
+            return getErrorMessage(currentLanguage);
         }
     }
 
-    public static String getWorkExperience(TelegramBotProperties properties, String currentLanguage) {
+    public String getWorkExperience(TelegramBotProperties properties, String currentLanguage, boolean onlyTitle) {
         StringBuilder workExperience = new StringBuilder();
-        if (currentLanguage.equals("RU")) {
-            cvURL = properties.getProperty("cvUrlRus");
-        } else {
-            cvURL = properties.getProperty("cvUrlEng");
-        }
+        setCvURL(properties, currentLanguage);
         try {
             Document doc = Jsoup.connect(cvURL).get();
-            Elements authorWorkExperience = doc.select("span.resume-block__title-text_sub");
-            workExperience.append(authorWorkExperience.get(0).text());
-
-            //Elements experienceBlocks = doc.select("div.resume-block[data-qa=resume-block-experience]");
-            /*for (Element exeprienceBlock: experienceBlocks) {
-            }*/
-
-            //xperienceBlocks.get(0).select("div.resume-block-item-gap").select("div.resume-block__sub-title");
+            if (onlyTitle) {
+                Elements authorWorkExperience = doc.select("span.resume-block__title-text_sub");
+                workExperience.append("<b>").append(authorWorkExperience.get(0).text()).append("</b>").append("\n");
+            } else {
+                workNumber = Math.max(workNumber, 0);
+                Elements experienceBlocks = doc.select("div.bloko-column.bloko-column_xs-4.bloko-column_s-6.bloko-column_m-7.bloko-column_l-10");
+                while (workNumber > experienceBlocks.size() + 1 ||
+                        experienceBlocks.get(workNumber).select("div.resume-block-container[data-qa=resume-block-education-item]").size() != 0) {
+                    workNumber--;
+                }
+                Element workBlock = experienceBlocks.get(workNumber);
+                Element timeWorkBlock = doc.select("div.bloko-column.bloko-column_xs-4.bloko-column_s-2.bloko-column_m-2.bloko-column_l-2").get(workNumber);
+                workExperience.append(timeWorkBlock.ownText()).append("\n");
+                if (currentLanguage.equals("EN")) {
+                    workExperience.append("<b>Company: </b>").append(workBlock.select("div.resume-block__sub-title").get(0).text()).append("\n");
+                    workExperience.append("<b>Position: </b>").append(workBlock.select("div.resume-block__sub-title[data-qa=resume-block-experience-position]").get(0).text()).append("\n");
+                    workExperience.append("<b>Responsibilities and achievements: </b>\n").append(workBlock.select("div[data-qa=resume-block-experience-description]").get(0).text()).append("\n");
+                } else {
+                    workExperience.append("<b>Организация: </b>").append(workBlock.select("div.resume-block__sub-title").get(0).text()).append("\n");
+                    workExperience.append("<b>Должность: </b>").append(workBlock.select("div.resume-block__sub-title[data-qa=resume-block-experience-position]").get(0).text()).append("\n");
+                    workExperience.append("<b>Обязанности и достижения: </b>\n").append(workBlock.select("div[data-qa=resume-block-experience-description]").get(0).text()).append("\n");
+                }
+            }
             return workExperience.toString();
         } catch (IOException e) {
-            return currentLanguage.equals("RU") ? "Информация временно недоступна" : "Information is temporarily unavailable";
+            return getErrorMessage(currentLanguage);
         }
     }
 
-    public static String getContactInformation(TelegramBotProperties properties, String currentLanguage) {
+    public String getContactInformation(TelegramBotProperties properties, String currentLanguage) {
+        workNumber = 0;
         StringBuilder contactInformation = new StringBuilder();
+        setCvURL(properties, currentLanguage);
         if (currentLanguage.equals("RU")) {
-            cvURL = properties.getProperty("cvUrlRus");
             contactInformation.append("Контактная информация:\n");
         } else {
-            cvURL = properties.getProperty("cvUrlEng");
             contactInformation.append("Contact information:\n");
         }
+
+        contactInformation.append("Telegram: ").append(properties.getProperty("telegram")).append("\n");
+
         try {
             Document doc = Jsoup.connect(cvURL).get();
             Elements contactPhone = doc.select("div[data-qa=resume-contacts-phone]");
@@ -78,7 +100,23 @@ public class TextParser {
             contactInformation.append("Skype: ").append(contactSkype.get(0).text());
             return contactInformation.toString();
         } catch (IOException e) {
-            return currentLanguage.equals("RU") ? "Информация временно недоступна" : "Information is temporarily unavailable";
+            return getErrorMessage(currentLanguage);
+        }
+    }
+
+    private void setCvURL(TelegramBotProperties properties, String currentLanguage){
+        if (currentLanguage.equals("RU")) {
+            cvURL = properties.getProperty("cvUrlRus");
+        } else {
+            cvURL = properties.getProperty("cvUrlEng");
+        }
+    }
+
+    private String getErrorMessage(String currentLanguage) {
+        if (currentLanguage.equals("EN")) {
+            return "Information is temporarily unavailable.\nPlease try again later";
+        } else {
+            return "Информация временно недоступна.\nПопробуйте позже";
         }
     }
 }
