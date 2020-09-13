@@ -2,6 +2,7 @@
 
 <a href="https://t.me/velementbot">@VelementBot</a>
 
+<p>Deployed on Heroku, works 24/7!</p>
 <p>Telegram bot, which parses information from hh.ru from my resume</p>
 <p>When information updates on hh.ru, telegram bot tells you new information</p>
 
